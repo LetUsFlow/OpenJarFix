@@ -1,33 +1,22 @@
 // Hide the console window
 #![windows_subsystem = "windows"]
 
-extern crate winapi;
-
-use std::ffi::CString;
 use which::which;
-use winapi::um::winuser::{MessageBoxA, MB_ICONINFORMATION, MB_ICONWARNING};
-use winreg::{enums::*, RegKey};
+use winreg::{enums::HKEY_CLASSES_ROOT, RegKey};
+use winsafe::{co::MB, prelude::*, HWND};
 
 fn main() {
-    let lp_caption = CString::new("OpenJarFix").unwrap();
-
     let javaw = match which("javaw") {
         Ok(javaw) => javaw.display().to_string(),
         Err(_) => {
-            let lp_text = CString::new("OpenJarFix could not find javaw.exe in your PATH environment variable.\nThis could mean that Java is not correctly installed or the PATH variable has not been updated.\n\nNo changes to your system have been made.").unwrap();
-            unsafe {
-                MessageBoxA(
-                    std::ptr::null_mut(),
-                    lp_text.as_ptr(),
-                    lp_caption.as_ptr(),
-                    MB_ICONWARNING,
-                );
-            }
+            HWND::GetDesktopWindow()
+            .MessageBox("OpenJarFix could not find javaw.exe in your PATH environment variable.\nThis could mean that Java is not correctly installed or the PATH variable has not been updated.\n\nNo changes to your system have been made.",
+            "OpenJarFix", MB::ICONWARNING).unwrap();
             std::process::exit(1);
         }
     };
 
-    let command = format!("\"{javaw}\" -jar \"%1\" %*");
+    let command: String = format!("\"{javaw}\" -jar \"%1\" %*");
 
     let hkcr: RegKey = RegKey::predef(HKEY_CLASSES_ROOT);
 
@@ -42,13 +31,6 @@ fn main() {
     let _ = key.set_value("", &command);
 
     // https://github.com/mxre/winres/blob/master/example/src/main.rs
-    let lp_text = CString::new(format!("The .jar (Java Archive) file extension has successfully been registered.\n\nUsed runtime:\n{javaw}")).unwrap();
-    unsafe {
-        MessageBoxA(
-            std::ptr::null_mut(),
-            lp_text.as_ptr(),
-            lp_caption.as_ptr(),
-            MB_ICONINFORMATION,
-        );
-    }
+    HWND::GetDesktopWindow().MessageBox(&format!("The .jar (Java Archive) file extension has successfully been registered.\n\nUsed runtime:\n{javaw}"),
+    "OpenJarFix", MB::ICONINFORMATION).unwrap();
 }
