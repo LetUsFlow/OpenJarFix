@@ -1,6 +1,7 @@
 // Hide the console window
 #![windows_subsystem = "windows"]
 
+use std::io;
 use which::which;
 use winreg::{enums::HKEY_CLASSES_ROOT, RegKey};
 use winsafe::{co::MB, prelude::*, HWND};
@@ -19,19 +20,30 @@ fn main() {
     };
 
     // set registry keys
-    let hkcr: RegKey = RegKey::predef(HKEY_CLASSES_ROOT);
-
-    let (key, _) = hkcr.create_subkey(".jar").unwrap();
-    key.set_value("", &"jarfile").unwrap();
-
-    let (key, _) = hkcr.create_subkey("jarfile").unwrap();
-    key.set_value("", &"Executable Jar File").unwrap();
-    let (key, _) = key.create_subkey("shell").unwrap();
-    let (key, _) = key.create_subkey("open").unwrap();
-    let (key, _) = key.create_subkey("command").unwrap();
-    let _ = key.set_value("", &format!("\"{javaw}\" -jar \"%1\" %*"));
-
-    // display success message
-    HWND::GetDesktopWindow().MessageBox(&format!("The .jar (Java Archive) file extension has successfully been registered.\n\nUsed runtime:\n{javaw}"),
+    match add_jar_registry_keys(&javaw) {
+        Ok(_) => {
+            // display success message
+            HWND::GetDesktopWindow().MessageBox(&format!("The .jar (Java Archive) file extension has successfully been registered.\n\nUsed runtime:\n{javaw}"),
     "OpenJarFix", MB::ICONINFORMATION).unwrap();
+        }
+        Err(_) => {
+            // display error message
+            HWND::GetDesktopWindow().MessageBox(&format!("An error occured while setting the necessary registry keys.\nThe .jar file extension might not work."),
+    "OpenJarFix", MB::ICONERROR).unwrap();
+        }
+    };
+}
+
+fn add_jar_registry_keys(javaw: &str) -> io::Result<()> {
+    let hkcr: RegKey = RegKey::predef(HKEY_CLASSES_ROOT);
+    let (key, _) = hkcr.create_subkey(".jar")?;
+    key.set_value("", &"jarfile")?;
+
+    let (key, _) = hkcr.create_subkey("jarfile")?;
+    key.set_value("", &"Executable Jar File")?;
+    let (key, _) = key.create_subkey("shell")?;
+    let (key, _) = key.create_subkey("open")?;
+    let (key, _) = key.create_subkey("command")?;
+    let _ = key.set_value("", &format!("\"{javaw}\" -jar \"%1\" %*"));
+    Ok(())
 }
