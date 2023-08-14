@@ -13,8 +13,9 @@ fn main() {
         Err(_) => {
             // no javaw.exe found :'(
             HWND::GetDesktopWindow()
-            .MessageBox("OpenJarFix could not find javaw.exe in your PATH environment variable.\nThis could mean that Java is not correctly installed or the PATH variable has not been updated.\n\nNo changes to your system have been made.",
-            "OpenJarFix", MB::ICONWARNING).unwrap();
+            .MessageBox("OpenJarFix could not find javaw.exe in your PATH environment variable.\n\
+            This could mean that Java is not correctly installed or the PATH variable has not been updated.\n\n\
+            No changes to your system have been made.", "OpenJarFix", MB::ICONWARNING).unwrap();
             std::process::exit(1);
         }
     };
@@ -23,13 +24,15 @@ fn main() {
     match add_jar_registry_keys(&javaw) {
         Ok(_) => {
             // display success message
-            HWND::GetDesktopWindow().MessageBox(&format!("The .jar (Java Archive) file extension has successfully been registered.\n\nUsed runtime:\n{javaw}"),
-    "OpenJarFix", MB::ICONINFORMATION).unwrap();
+            HWND::GetDesktopWindow()
+            .MessageBox(&format!("The .jar (Java Archive) file extension has successfully been registered.\n\n\
+            Used runtime:\n{javaw}"), "OpenJarFix", MB::ICONINFORMATION).unwrap();
         }
         Err(_) => {
             // display error message
-            HWND::GetDesktopWindow().MessageBox(&format!("An error occured while setting the necessary registry keys.\nThe .jar file extension might not work."),
-    "OpenJarFix", MB::ICONERROR).unwrap();
+            HWND::GetDesktopWindow()
+            .MessageBox("An error occured while setting the necessary registry keys.\n\
+            The .jar file extension might not work.", "OpenJarFix", MB::ICONERROR).unwrap();
         }
     };
 }
