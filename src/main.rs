@@ -11,6 +11,7 @@ use windows::{
 };
 use winreg::{enums::HKEY_CLASSES_ROOT, RegKey};
 
+#[cfg(target_family = "windows")]
 fn main() {
     // discover javaw.exe
     let javaw = match which("javaw") {
