@@ -3,13 +3,13 @@
 
 use std::io;
 use which::which;
-use winreg::{enums::HKEY_CLASSES_ROOT, RegKey};
 use windows::{
-    core::PCSTR,
+    core::{s, PCSTR},
     Win32::UI::WindowsAndMessaging::{
         MessageBoxA, MB_ICONERROR, MB_ICONINFORMATION, MB_ICONWARNING, MESSAGEBOX_STYLE,
     },
 };
+use winreg::{enums::HKEY_CLASSES_ROOT, RegKey};
 
 fn main() {
     // discover javaw.exe
@@ -17,9 +17,12 @@ fn main() {
         Ok(javaw) => javaw.display().to_string(),
         Err(_) => {
             // no javaw.exe found :'(
-            display_message_box("OpenJarFix could not find javaw.exe in your PATH environment variable.\n\
-            This could mean that Java is not correctly installed or the PATH variable has not been updated.\n\n\
-            No changes to your system have been made.", MB_ICONWARNING);
+            display_message_box(
+                "OpenJarFix could not find javaw.exe in your PATH environment variable.\n\
+                This could mean that Java is not correctly installed or the PATH variable has not been updated.\n\n\
+                No changes to your system have been made.",
+                MB_ICONWARNING
+            );
             // terminate the program
             return;
         }
@@ -67,8 +70,8 @@ fn display_message_box(text: &str, messagebox_style: MESSAGEBOX_STYLE) {
     unsafe {
         MessageBoxA(
             None,
-            PCSTR::from_raw(format!("{text}\u{0}").as_ptr()),
-            PCSTR::from_raw("OpenJarFix\u{0}".as_ptr()),
+            PCSTR::from_raw(format!("{text}\0").as_ptr()),
+            s!("OpenJarFix"),
             messagebox_style,
         );
     }
